@@ -12,25 +12,24 @@ class ViewController: UIViewController, GMSMapViewDelegate {
     var currentLocation: CLLocationCoordinate2D?
     let serverDateFormatter = DateFormatter()
     let serverDateFormat = "HHmm"
-
+    let locationManager = CLLocationManager()
+    let internetConnectionErrorMessage = "Internet connection error."
+    let emptyWebsiteErrorMessage = "This place doesn't have a website."
+    let wrongCurrentLocationErrorMessage = "We couldn't find your current location. Check your GPS connection and try again by pressing \"Current location\" button."
+    
     
     // MARK: - UIViewController
     
     override func loadView() {
-        let locationManager = CLLocationManager()
+        
         
         locationManager.requestWhenInUseAuthorization()
 
         GMSServices.provideAPIKey(gmsApiKey)
         
-        var startCamera: GMSCameraPosition
+        findCurrentLocation()
         
-        if let location = locationManager.location {
-            currentLocation = location.coordinate
-        } else {
-            currentLocation = CLLocationCoordinate2D(latitude: 0, longitude: 0)
-        }
-        startCamera = GMSCameraPosition.camera(withLatitude: currentLocation!.latitude, longitude: currentLocation!.longitude, zoom: defaultCameraZoom)
+        let startCamera = GMSCameraPosition.camera(withLatitude: currentLocation!.latitude, longitude: currentLocation!.longitude, zoom: defaultCameraZoom)
         
         let mapView = GMSMapView.map(withFrame: .zero, camera: startCamera)
         
@@ -43,12 +42,12 @@ class ViewController: UIViewController, GMSMapViewDelegate {
         self.navigationController?.isNavigationBarHidden = true
         
         serverDateFormatter.dateFormat = serverDateFormat
-        
-        searchPlaces(withUrlParams: "&location=\(currentLocation!.latitude),\(currentLocation!.longitude)&radius=\(searchRadius)&types=restaurant")
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        searchPlaces(withUrlParams: "&location=\(currentLocation!.latitude),\(currentLocation!.longitude)&radius=\(searchRadius)&types=restaurant")
     }
     
     
@@ -61,9 +60,17 @@ class ViewController: UIViewController, GMSMapViewDelegate {
                     UIApplication.shared.open(url, options: [:], completionHandler: nil)
                 }
             } else {
-                showAlert(withErrorMessage: "This place doesn't have a website.")
+                showAlert(withErrorMessage: emptyWebsiteErrorMessage)
             }
         }
+        
+        return false
+    }
+    
+    func didTapMyLocationButton(for mapView: GMSMapView) -> Bool {
+        mapView.clear()
+        findCurrentLocation()
+        searchPlaces(withUrlParams: "&location=\(currentLocation!.latitude),\(currentLocation!.longitude)&radius=\(searchRadius)&types=restaurant")
         
         return false
     }
@@ -89,7 +96,7 @@ class ViewController: UIViewController, GMSMapViewDelegate {
                     }
                 }
             case .failure(_):
-                print("Internet connection error")
+                self.showAlert(withErrorMessage: self.internetConnectionErrorMessage)
             }
         }
     }
@@ -123,7 +130,7 @@ class ViewController: UIViewController, GMSMapViewDelegate {
                     }
                 }
             case .failure(_):
-                print("Internet connection error")
+                self.showAlert(withErrorMessage: self.internetConnectionErrorMessage)
             }
         }
     }
@@ -195,5 +202,14 @@ class ViewController: UIViewController, GMSMapViewDelegate {
         }
 
         return false
+    }
+    
+    func findCurrentLocation() {
+        if let location = locationManager.location {
+            currentLocation = location.coordinate
+        } else {
+            currentLocation = CLLocationCoordinate2D(latitude: 0, longitude: 0)
+            showAlert(withErrorMessage: wrongCurrentLocationErrorMessage)
+        }
     }
 }
