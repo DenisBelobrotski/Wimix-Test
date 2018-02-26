@@ -11,10 +11,11 @@
 		739B70FC203EE5F000DCB178 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 739B70FB203EE5F000DCB178 /* ViewController.swift */; };
 		739B7101203EE5F000DCB178 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 739B7100203EE5F000DCB178 /* Assets.xcassets */; };
 		739B7104203EE5F000DCB178 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 739B7102203EE5F000DCB178 /* LaunchScreen.storyboard */; };
-		8F4A0BB52ECBD8475D66FB14 /* libPods-Wimix-Test.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D910D198B06861444276E3F0 /* libPods-Wimix-Test.a */; };
+		D91D8B7485C0A7C13C215D92 /* Pods_Wimix_Test.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 27BA3A67DCB6F05B9D70EA5E /* Pods_Wimix_Test.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		27BA3A67DCB6F05B9D70EA5E /* Pods_Wimix_Test.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Wimix_Test.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		739B70F6203EE5F000DCB178 /* Wimix-Test.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Wimix-Test.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		739B70F9203EE5F000DCB178 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		739B70FB203EE5F000DCB178 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -23,7 +24,6 @@
 		739B7105203EE5F000DCB178 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		D17E8C7C4D5629061AC684C6 /* Pods-Wimix-Test.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Wimix-Test.release.xcconfig"; path = "Pods/Target Support Files/Pods-Wimix-Test/Pods-Wimix-Test.release.xcconfig"; sourceTree = "<group>"; };
 		D6233623F7A382F024ADB4D4 /* Pods-Wimix-Test.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Wimix-Test.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Wimix-Test/Pods-Wimix-Test.debug.xcconfig"; sourceTree = "<group>"; };
-		D910D198B06861444276E3F0 /* libPods-Wimix-Test.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Wimix-Test.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -31,7 +31,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8F4A0BB52ECBD8475D66FB14 /* libPods-Wimix-Test.a in Frameworks */,
+				D91D8B7485C0A7C13C215D92 /* Pods_Wimix_Test.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -41,7 +41,7 @@
 		676FD31A87B536E24AA5E516 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				D910D198B06861444276E3F0 /* libPods-Wimix-Test.a */,
+				27BA3A67DCB6F05B9D70EA5E /* Pods_Wimix_Test.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -183,9 +183,12 @@
 			files = (
 			);
 			inputPaths = (
+				"${SRCROOT}/Pods/Target Support Files/Pods-Wimix-Test/Pods-Wimix-Test-frameworks.sh",
+				"${BUILT_PRODUCTS_DIR}/Alamofire/Alamofire.framework",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Alamofire.framework",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
