@@ -2,11 +2,11 @@ import UIKit
 import GoogleMaps
 import Alamofire
 
-class ViewController: UIViewController {
+class ViewController: UIViewController, GMSMapViewDelegate {
     
     // MARK: - Properties
     
-    let defaultCameraZoom: Float = 17.0
+    let defaultCameraZoom: Float = 15.0
     let gmsApiKey = "AIzaSyBV0Y4BpcxlDGJpagnzc4PjDGFAZtu5eOY"
     let searchRadius = 1000
     var currentLocation: CLLocationCoordinate2D?
@@ -25,16 +25,17 @@ class ViewController: UIViewController {
         
         if let location = locationManager.location {
             currentLocation = location.coordinate
-            startCamera = GMSCameraPosition.camera(withLatitude: location.coordinate.latitude, longitude: location.coordinate.longitude, zoom: defaultCameraZoom)
         } else {
-            startCamera = GMSCameraPosition.camera(withLatitude: 0, longitude: 0, zoom: defaultCameraZoom)
+            currentLocation = CLLocationCoordinate2D(latitude: 0, longitude: 0)
         }
+        startCamera = GMSCameraPosition.camera(withLatitude: currentLocation!.latitude, longitude: currentLocation!.longitude, zoom: defaultCameraZoom)
         
         let mapView = GMSMapView.map(withFrame: .zero, camera: startCamera)
         
         mapView.isMyLocationEnabled = true
         mapView.settings.myLocationButton = true
         mapView.settings.compassButton = true
+        mapView.delegate = self
         self.view = mapView
         
         self.navigationController?.isNavigationBarHidden = true
@@ -44,6 +45,23 @@ class ViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+    }
+    
+    
+    // MARK: - GMSMapViewDelegate
+    
+    func mapView(_ mapView: GMSMapView, didTap marker: GMSMarker) -> Bool {
+        if let path = marker.snippet {
+            if !path.isEmpty {
+                if let url = URL(string: path) {
+                    UIApplication.shared.open(url, options: [:], completionHandler: nil)
+                }
+            } else {
+                showErrorMessage("This place doesn't hava a website.")
+            }
+        }
+        
+        return false
     }
     
     func searchPlaces() {
@@ -95,6 +113,12 @@ class ViewController: UIViewController {
         marker.title = name
         marker.snippet = website
         marker.map = self.view as? GMSMapView
+    }
+    
+    func showErrorMessage(_ message: String) {
+        let alert = UIAlertController(title: "Error", message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+        present(alert, animated: true, completion: nil)
     }
 
 }
