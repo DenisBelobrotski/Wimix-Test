@@ -7,7 +7,7 @@ class ViewController: UIViewController, GMSMapViewDelegate {
     // MARK: - Properties
     
     let defaultCameraZoom: Float = 15.0
-    let gmsApiKey = "AIzaSyBV0Y4BpcxlDGJpagnzc4PjDGFAZtu5eOY"
+    let gmsApiKey = "AIzaSyBEBXftMkVCe__-qxo5nWxNPfO906TkOec"
     let searchRadius = 1000
     var currentLocation: CLLocationCoordinate2D?
     let serverDateFormatter = DateFormatter()
@@ -44,7 +44,7 @@ class ViewController: UIViewController, GMSMapViewDelegate {
         
         serverDateFormatter.dateFormat = serverDateFormat
         
-        searchPlaces()
+        searchPlaces(withUrlParams: "&location=\(currentLocation!.latitude),\(currentLocation!.longitude)&radius=\(searchRadius)&types=restaurant")
     }
     
     override func viewDidLoad() {
@@ -71,12 +71,15 @@ class ViewController: UIViewController, GMSMapViewDelegate {
     
     // MARK: - Internal methods
     
-    func searchPlaces() {
-        let urlRequest = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=\(currentLocation!.latitude),\(currentLocation!.longitude)&radius=\(searchRadius)&types=restaurant&key=\(gmsApiKey)"
+    func searchPlaces(withUrlParams urlParams: String) {
+        let urlRequest = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?key=\(gmsApiKey)" + urlParams
         Alamofire.request(urlRequest).validate().responseJSON { (response) in
             switch response.result {
             case .success(_):
                 if let responseValue = response.result.value as! [String: Any]? {
+                    if let nextPageToken = responseValue["next_page_token"] as? String {
+                        self.searchPlaces(withUrlParams: "&pagetoken=\(nextPageToken)")
+                    }
                     if let responsePlaces = responseValue["results"] as! [[String: Any]]? {
                         for currentPlace in responsePlaces {
                             if let placeId = currentPlace["place_id"] as? String {
