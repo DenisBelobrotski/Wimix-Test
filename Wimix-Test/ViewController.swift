@@ -10,6 +10,8 @@ class ViewController: UIViewController, GMSMapViewDelegate {
     let gmsApiKey = "AIzaSyBV0Y4BpcxlDGJpagnzc4PjDGFAZtu5eOY"
     let searchRadius = 1000
     var currentLocation: CLLocationCoordinate2D?
+    let serverDateFormatter = DateFormatter()
+    let serverDateFormat = "HHmm"
 
     
     // MARK: - UIViewController
@@ -40,6 +42,8 @@ class ViewController: UIViewController, GMSMapViewDelegate {
         
         self.navigationController?.isNavigationBarHidden = true
         
+        serverDateFormatter.dateFormat = serverDateFormat
+        
         searchPlaces()
     }
     
@@ -57,12 +61,15 @@ class ViewController: UIViewController, GMSMapViewDelegate {
                     UIApplication.shared.open(url, options: [:], completionHandler: nil)
                 }
             } else {
-                showErrorMessage("This place doesn't hava a website.")
+                showAlert(withErrorMessage: "This place doesn't have a website.")
             }
         }
         
         return false
     }
+    
+    
+    // MARK: - Internal methods
     
     func searchPlaces() {
         let urlRequest = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=\(currentLocation!.latitude),\(currentLocation!.longitude)&radius=\(searchRadius)&types=restaurant&key=\(gmsApiKey)"
@@ -90,14 +97,24 @@ class ViewController: UIViewController, GMSMapViewDelegate {
             switch response.result {
             case .success(_):
                 if let responseValue = response.result.value as! [String: Any]? {
-                    if let responsePlace = responseValue["result"] as! [String: Any]? {
-                        if let responseGeometry = responsePlace["geometry"] as! [String: Any]? {
-                            if let responseLocation = responseGeometry["location"] as! [String: Any]? {
-                                let responseLatitude = responseLocation["lat"] as? Double ?? 0
-                                let responseLongitude = responseLocation["lng"] as? Double ?? 0
-                                let responseName = responsePlace["name"] as? String ?? ""
-                                let responseWebsite = responsePlace["website"] as? String ?? ""
-                                self.instantiateMarkerWithPosition(CLLocationCoordinate2D(latitude: responseLatitude, longitude: responseLongitude), name: responseName, andWebsite: responseWebsite)
+                    if let place = responseValue["result"] as! [String: Any]? {
+                        if let geometry = place["geometry"] as! [String: Any]? {
+                            if let location = geometry["location"] as! [String: Any]? {
+                                let latitude = location["lat"] as? Double ?? 0
+                                let longitude = location["lng"] as? Double ?? 0
+                                
+                                let name = place["name"] as? String ?? ""
+                                let website = place["website"] as? String ?? ""
+                                
+                                if let openingHours = place["opening_hours"] as! [String: Any]? {
+                                    let isOpenNow = openingHours["open_now"] as? Bool ?? false
+                                    if isOpenNow {
+                                        let periods = openingHours["periods"] as! [[String: Any]]?
+                                        if self.isPlaceOpenRoundTheClock(periods: periods) || self.isPlaceOpenNextHour(periods: periods) {
+                                            self.instantiateMarkerWithPosition(CLLocationCoordinate2D(latitude: latitude, longitude: longitude), name: name, andWebsite: website)
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -115,11 +132,65 @@ class ViewController: UIViewController, GMSMapViewDelegate {
         marker.map = self.view as? GMSMapView
     }
     
-    func showErrorMessage(_ message: String) {
+    func showAlert(withErrorMessage message: String) {
         let alert = UIAlertController(title: "Error", message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
         present(alert, animated: true, completion: nil)
     }
+    
+    func isPlaceOpenNextHour(periods: [[String: Any]]?) -> Bool {
+        if let periods = periods {
+            let currentDayComponents = Calendar.current.dateComponents([.weekday, .hour, .minute], from: Date())
+            
+            var requiredWeekday = currentDayComponents.weekday! - 1
+            var requiredHour = currentDayComponents.hour! + 1
+            let requiredMinute = currentDayComponents.minute!
 
+            if requiredHour >= 24 {
+                requiredWeekday += 1
+                requiredHour %= 24
+            }
+            
+            for currentPeriod in periods {
+                if let close = currentPeriod["close"] as! [String: Any]? {
+                    let closeWeekday = close["day"] as? Int
+                    let closeTime = close["time"] as? String
+                    if closeWeekday != nil && closeTime != nil {
+                        let closeTimeComponents = Calendar.current.dateComponents([.hour, .minute], from: self.serverDateFormatter.date(from: closeTime!) ?? Date())
+                        if requiredWeekday == closeWeekday! {
+                            if requiredHour < closeTimeComponents.hour! {
+                                return true
+                            } else if requiredHour == closeTimeComponents.hour! && requiredMinute < closeTimeComponents.minute! {
+                                return true
+                            } else {
+                                return false
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        return false
+    }
+    
+    func isPlaceOpenRoundTheClock(periods: [[String: Any]]?) -> Bool {
+        if let periods = periods {
+            let currentPeriod = periods[0]
+            if let open = currentPeriod["open"] as! [String: Any]? {
+                let day = open["day"] as? Int
+                if day != nil && day == 0 {
+                    let time = open["time"] as? String
+                    if time != nil && time == "0000" {
+                        let close = currentPeriod["close"] as! [String: Any]?
+                        if close == nil {
+                            return true
+                        }
+                    }
+                }
+            }
+        }
+
+        return false
+    }
 }
-
