@@ -16,6 +16,7 @@ class ViewController: UIViewController, GMSMapViewDelegate {
     let internetConnectionErrorMessage = "Internet connection error."
     let emptyWebsiteErrorMessage = "This place doesn't have a website."
     let wrongCurrentLocationErrorMessage = "We couldn't find your current location. Check your GPS connection and try again by pressing \"Current location\" button."
+    let searchTypes = ["restaurant", "cafe"]
     
     
     // MARK: - UIViewController
@@ -45,7 +46,7 @@ class ViewController: UIViewController, GMSMapViewDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        searchPlaces(withUrlParams: "&location=\(currentLocation!.latitude),\(currentLocation!.longitude)&radius=\(searchRadius)&type=restaurant")
+        searchPlaces()
     }
     
     
@@ -68,7 +69,7 @@ class ViewController: UIViewController, GMSMapViewDelegate {
     func didTapMyLocationButton(for mapView: GMSMapView) -> Bool {
         mapView.clear()
         findCurrentLocation()
-        searchPlaces(withUrlParams: "&location=\(currentLocation!.latitude),\(currentLocation!.longitude)&radius=\(searchRadius)&type=restaurant")
+        searchPlaces()
         
         return false
     }
@@ -76,14 +77,20 @@ class ViewController: UIViewController, GMSMapViewDelegate {
     
     // MARK: - Internal methods
     
-    func searchPlaces(withUrlParams urlParams: String) {
+    func searchPlaces() {
+        for currentType in searchTypes {
+            placeMarkers(withUrlParams: "&location=\(currentLocation!.latitude),\(currentLocation!.longitude)&radius=\(searchRadius)&type=\(currentType)")
+        }
+    }
+    
+    func placeMarkers(withUrlParams urlParams: String) {
         let urlRequest = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?key=\(gmsApiKey)" + urlParams
         Alamofire.request(urlRequest).validate().responseJSON { (response) in
             switch response.result {
             case .success(_):
                 if let responseValue = response.result.value as! [String: Any]? {
                     if let nextPageToken = responseValue["next_page_token"] as? String {
-                        self.searchPlaces(withUrlParams: "&pagetoken=\(nextPageToken)")
+                        self.placeMarkers(withUrlParams: "&pagetoken=\(nextPageToken)")
                     }
                     if let responsePlaces = responseValue["results"] as! [[String: Any]]? {
                         for currentPlace in responsePlaces {
