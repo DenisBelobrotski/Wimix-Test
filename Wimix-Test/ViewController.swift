@@ -21,8 +21,6 @@ class ViewController: UIViewController, GMSMapViewDelegate {
     // MARK: - UIViewController
     
     override func loadView() {
-        
-        
         locationManager.requestWhenInUseAuthorization()
 
         GMSServices.provideAPIKey(gmsApiKey)
@@ -47,7 +45,7 @@ class ViewController: UIViewController, GMSMapViewDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        searchPlaces(withUrlParams: "&location=\(currentLocation!.latitude),\(currentLocation!.longitude)&radius=\(searchRadius)&types=restaurant")
+        searchPlaces(withUrlParams: "&location=\(currentLocation!.latitude),\(currentLocation!.longitude)&radius=\(searchRadius)&type=restaurant")
     }
     
     
@@ -70,7 +68,7 @@ class ViewController: UIViewController, GMSMapViewDelegate {
     func didTapMyLocationButton(for mapView: GMSMapView) -> Bool {
         mapView.clear()
         findCurrentLocation()
-        searchPlaces(withUrlParams: "&location=\(currentLocation!.latitude),\(currentLocation!.longitude)&radius=\(searchRadius)&types=restaurant")
+        searchPlaces(withUrlParams: "&location=\(currentLocation!.latitude),\(currentLocation!.longitude)&radius=\(searchRadius)&type=restaurant")
         
         return false
     }
